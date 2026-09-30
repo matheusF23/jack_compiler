@@ -71,6 +71,54 @@ func NewToken(tokenType TokenType, lexeme string, line int) Token {
 	}
 }
 
+func isSymbol(t TokenType) bool {
+	switch t {
+	case LPAREN, RPAREN,
+		LBRACE, RBRACE,
+		LBRACKET, RBRACKET,
+		COMMA, SEMICOLON,
+		DOT, PLUS, MINUS,
+		ASTERISK, SLASH,
+		AND, OR, NOT,
+		LT, GT, EQ:
+		return true
+	default:
+		return false
+	}
+}
+
 func (t Token) String() string {
-	return fmt.Sprintf("<%s>%s</%s>", t.Type, t.Lexeme, t.Type)
+	var category string
+
+	switch t.Type {
+	case NUMBER:
+		category = "integerConstant"
+	case IDENT:
+		category = "identifier"
+	case STRING:
+		category = "stringConstant"
+	default:
+		if isSymbol(t.Type) {
+			category = "symbol"
+		} else {
+			category = "keyword"
+		}
+	}
+
+	value := t.Lexeme
+
+	if category == "symbol" {
+		switch value {
+		case ">":
+			value = "&gt;"
+		case "<":
+			value = "&lt;"
+		case `"`:
+			value = "&quot;"
+		case "&":
+			value = "&amp;"
+		}
+	}
+
+	return fmt.Sprintf("<%s> %s </%s>", category, value, category)
 }
