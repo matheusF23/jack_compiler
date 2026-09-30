@@ -60,12 +60,14 @@ const (
 type Token struct {
 	Type   TokenType
 	Lexeme string
+	Line   int
 }
 
-func NewToken(tokenType TokenType, lexeme string) Token {
+func NewToken(tokenType TokenType, lexeme string, line int) Token {
 	return Token{
 		Type:   tokenType,
 		Lexeme: lexeme,
+		Line:   line,
 	}
 }
 

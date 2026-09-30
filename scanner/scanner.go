@@ -10,6 +10,7 @@ import (
 type Scanner struct {
 	input   []byte
 	current int
+	line    int
 }
 
 var keywords = map[string]token.TokenType{
@@ -39,6 +40,7 @@ var keywords = map[string]token.TokenType{
 func NewScanner(input []byte) *Scanner {
 	return &Scanner{
 		input: input,
+		line:  1,
 	}
 }
 
@@ -87,7 +89,7 @@ func (s *Scanner) number() token.Token {
 
 	n := string(s.input[start:s.current])
 
-	return token.NewToken(token.NUMBER, n)
+	return token.NewToken(token.NUMBER, n, s.line)
 }
 
 func (s *Scanner) identifier() token.Token {
@@ -105,10 +107,11 @@ func (s *Scanner) identifier() token.Token {
 		typeToken = token.IDENT
 	}
 
-	return token.NewToken(typeToken, id)
+	return token.NewToken(typeToken, id, s.line)
 }
 
 func (s *Scanner) string() token.Token {
+	startLine := s.line
 	s.advance() // Skip the opening quote
 	start := s.current
 	for s.peek() != '"' && s.peek() != '\x00' {
@@ -118,7 +121,7 @@ func (s *Scanner) string() token.Token {
 
 	s.advance() // consume the closing quote
 
-	return token.NewToken(token.STRING, str)
+	return token.NewToken(token.STRING, str, startLine)
 }
 
 func (s *Scanner) NextToken() token.Token {
@@ -136,6 +139,7 @@ func (s *Scanner) NextToken() token.Token {
 		return token.NewToken(
 			token.NUMBER,
 			string(ch),
+			s.line,
 		)
 	} else if unicode.IsDigit(rune(ch)) {
 		return s.number()
@@ -144,15 +148,15 @@ func (s *Scanner) NextToken() token.Token {
 	switch ch {
 	case '+':
 		s.advance()
-		return token.NewToken(token.PLUS, "+")
+		return token.NewToken(token.PLUS, "+", s.line)
 
 	case '-':
 		s.advance()
-		return token.NewToken(token.MINUS, "-")
+		return token.NewToken(token.MINUS, "-", s.line)
 
 	case '*':
 		s.advance()
-		return token.NewToken(token.ASTERISK, "*")
+		return token.NewToken(token.ASTERISK, "*", s.line)
 
 	case '/':
 		if s.peekNext() == '/' {
@@ -163,22 +167,22 @@ func (s *Scanner) NextToken() token.Token {
 			return s.NextToken()
 		} else {
 			s.advance()
-			return token.NewToken(token.SLASH, "/")
+			return token.NewToken(token.SLASH, "/", s.line)
 		}
 
 	case '=':
 		s.advance()
-		return token.NewToken(token.EQ, "=")
+		return token.NewToken(token.EQ, "=", s.line)
 
 	case ';':
 		s.advance()
-		return token.NewToken(token.SEMICOLON, ";")
+		return token.NewToken(token.SEMICOLON, ";", s.line)
 
 	case '"':
 		return s.string()
 
 	case '\x00':
-		return token.NewToken(token.EOF, "EOF")
+		return token.NewToken(token.EOF, "EOF", s.line)
 
 	default:
 		panic(fmt.Sprintf("lexical error at %c", ch))
@@ -188,7 +192,11 @@ func (s *Scanner) NextToken() token.Token {
 func (s *Scanner) skipWhitespace() {
 	ch := s.peek()
 
-	for unicode.IsSpace(rune(ch)) {
+	for ch == ' ' || ch == '\r' || ch == '\t' || ch == '\n' {
+		if ch == '\n' {
+			s.line++
+		}
+
 		s.advance()
 		ch = s.peek()
 	}
@@ -211,6 +219,9 @@ func (s *Scanner) skipBlockComments() {
 			s.advance()
 			s.advance()
 			return
+		}
+		if s.peek() == '\n' {
+			s.line++
 		}
 		s.advance()
 	}
