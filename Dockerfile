@@ -7,4 +7,4 @@ RUN go mod download
 
 COPY . .
 
-CMD ["go", "run", "./cmd/nand2tetris"]
+CMD ["go", "run", "./cmd/jack_compiler"]

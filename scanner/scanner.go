@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"unicode"
 
-	"nand2tetris/token"
+	"jack_compiler/token"
 )
 
 type Scanner struct {
