@@ -50,6 +50,16 @@ func (s *Scanner) peek() byte {
 	return '\x00'
 }
 
+func (s *Scanner) peekNext() byte {
+	next := s.current + 1
+
+	if next < len(s.input) {
+		return s.input[next]
+	}
+
+	return '\x00'
+}
+
 func (s *Scanner) advance() {
 	ch := s.peek()
 
@@ -145,8 +155,16 @@ func (s *Scanner) NextToken() token.Token {
 		return token.NewToken(token.ASTERISK, "*")
 
 	case '/':
-		s.advance()
-		return token.NewToken(token.SLASH, "/")
+		if s.peekNext() == '/' {
+			s.skipLineComments()
+			return s.NextToken()
+		} else if s.peekNext() == '*' {
+			s.skipBlockComments()
+			return s.NextToken()
+		} else {
+			s.advance()
+			return token.NewToken(token.SLASH, "/")
+		}
 
 	case '=':
 		s.advance()
@@ -173,5 +191,27 @@ func (s *Scanner) skipWhitespace() {
 	for unicode.IsSpace(rune(ch)) {
 		s.advance()
 		ch = s.peek()
+	}
+}
+
+func (s *Scanner) skipLineComments() {
+	for s.peek() != '\n' && s.peek() != '\x00' {
+		s.advance()
+	}
+}
+
+func (s *Scanner) skipBlockComments() {
+	s.advance()
+	s.advance()
+	for {
+		if s.peek() == '\x00' {
+			panic("Comentário de bloco não fechado")
+		}
+		if s.peek() == '*' && s.peekNext() == '/' {
+			s.advance()
+			s.advance()
+			return
+		}
+		s.advance()
 	}
 }
