@@ -146,6 +146,58 @@ func (s *Scanner) NextToken() token.Token {
 	}
 
 	switch ch {
+	case '(':
+		s.advance()
+		return token.NewToken(token.LPAREN, "(", s.line)
+
+	case ')':
+		s.advance()
+		return token.NewToken(token.RPAREN, ")", s.line)
+
+	case '{':
+		s.advance()
+		return token.NewToken(token.LBRACE, "{", s.line)
+
+	case '}':
+		s.advance()
+		return token.NewToken(token.RBRACE, "}", s.line)
+
+	case '[':
+		s.advance()
+		return token.NewToken(token.LBRACKET, "[", s.line)
+
+	case ']':
+		s.advance()
+		return token.NewToken(token.RBRACKET, "]", s.line)
+
+	case ',':
+		s.advance()
+		return token.NewToken(token.COMMA, ",", s.line)
+
+	case '.':
+		s.advance()
+		return token.NewToken(token.DOT, ".", s.line)
+
+	case '&':
+		s.advance()
+		return token.NewToken(token.AND, "&", s.line)
+
+	case '|':
+		s.advance()
+		return token.NewToken(token.OR, "|", s.line)
+
+	case '~':
+		s.advance()
+		return token.NewToken(token.NOT, "~", s.line)
+
+	case '<':
+		s.advance()
+		return token.NewToken(token.LT, "<", s.line)
+
+	case '>':
+		s.advance()
+		return token.NewToken(token.GT, ">", s.line)
+
 	case '+':
 		s.advance()
 		return token.NewToken(token.PLUS, "+", s.line)
